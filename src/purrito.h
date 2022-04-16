@@ -503,6 +503,10 @@ void read_paste(const purrito_settings &settings,
 			    ") Finished reading a paste of size %" PRIuFAST64,
 			    session_id, *read_count);
 
+			if (*read_count == 0) {
+				if (pfile) pfile->to_remove = true;
+				res->end("Empty Paste!");
+			}
 			/* print out the separator */
 			syslog(LOG_INFO,
 			       "(%" PRIuFAST64 ") Sending paste url back: %s",
