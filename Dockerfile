@@ -67,10 +67,11 @@ RUN apk add wget make gcc openssl openssl-dev curl musl-dev git g++ supervisor c
 
 # Purrito binary from builder container
 COPY --from=builder /out/bin/purrito /
-COPY --from=builder /out/share/PurritoBin /var/www/html
-COPY ./.run.sh /run.sh
-COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /out/share/PurritoBin /usr/share/purrito-provisioning
 
+COPY ./.run.sh /run.sh
+COPY ./.entrypoint.sh /entrypoint.sh
+COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.conf /
 
 VOLUME ["/var/www/html"]
@@ -80,4 +81,5 @@ ENV DOMAIN_NAME="localhost/"
 
 EXPOSE 80
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
