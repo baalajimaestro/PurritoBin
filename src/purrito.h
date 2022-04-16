@@ -505,7 +505,8 @@ void read_paste(const purrito_settings &settings,
 
 			if (*read_count == 0) {
 				if (pfile) pfile->to_remove = true;
-				res->end("Empty Paste!");
+				res->writeStatus("400 Bad Request");
+				res->end("Empty Paste Data");
 			}
 			/* print out the separator */
 			syslog(LOG_INFO,
