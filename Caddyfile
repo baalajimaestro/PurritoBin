@@ -1,0 +1,8 @@
+:80 {
+    @pastesub {
+        method POST
+    }
+    reverse_proxy @pastesub 127.0.0.1:42069
+    root * /var/www/html
+    file_server
+}

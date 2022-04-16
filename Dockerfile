@@ -44,7 +44,7 @@ RUN meson --prefix "/out" build && \
 FROM alpine:latest
 
 # Install all the dynamically linked dependencies
-RUN apk add wget make gcc openssl openssl-dev curl musl-dev git g++ && \
+RUN apk add wget make gcc openssl openssl-dev curl musl-dev git g++ supervisor caddy && \
     wget https://git.openldap.org/openldap/openldap/-/archive/LMDB_0.9.29/openldap-LMDB_0.9.29.tar.gz && \
     tar xzf openldap-LMDB_0.9.29.tar.gz && \
     cd openldap-LMDB_0.9.29/libraries/liblmdb && \
@@ -62,24 +62,22 @@ RUN apk add wget make gcc openssl openssl-dev curl musl-dev git g++ && \
     make install && \
     cd .. && \
     rm -rf uSockets && \
-    apk del openssl-dev make curl wget musl-dev git g++
+    apk del openssl-dev make curl wget musl-dev git g++ && \
+    mkdir /var/log/supervisord /var/run/supervisord
 
 # Purrito binary from builder container
 COPY --from=builder /out/bin/purrito /
-COPY ./.entrypoint.sh /entrypoint.sh
+COPY --from=builder /out/share/PurritoBin /var/www/html
 COPY ./.run.sh /run.sh
+COPY Caddyfile /etc/caddy/Caddyfile
 
-# Copy frontend for provisioning
-COPY frontend /usr/share/purrito-frontend
-COPY vendor/* /usr/share/purrito-frontend
+COPY supervisord.conf /
 
-VOLUME ["/data"]
+VOLUME ["/var/www/html"]
 VOLUME ["/db"]
 
 ENV DOMAIN_NAME="localhost/"
 
-EXPOSE 42069
+EXPOSE 80
 
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["/run.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
