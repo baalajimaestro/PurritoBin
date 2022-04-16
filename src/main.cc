@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
 	/* open syslog with purritobin identity */
 	openlog("purritobin", LOG_PERROR | LOG_PID, LOG_DAEMON);
-
+	setlogmask (LOG_UPTO (LOG_WARNING));
 	/* we should define the default values for variables not
 	 * considered essential
 	 */
