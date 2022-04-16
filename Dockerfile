@@ -71,6 +71,7 @@ COPY ./.run.sh /run.sh
 
 # Copy frontend for provisioning
 COPY frontend /usr/share/purrito-frontend
+COPY vendor/* /usr/share/purrito-frontend
 
 VOLUME ["/data"]
 VOLUME ["/db"]
