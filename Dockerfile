@@ -1,6 +1,6 @@
-FROM alpine:latest as builder
+FROM alpine:edge as builder
 
-RUN apk update && apk add build-base ninja meson git wget bash curl openssl openssl-dev
+RUN apk update && apk add build-base ninja meson git wget bash curl openssl3 openssl3-dev
 
 # Install usockets
 RUN git clone https://github.com/uNetworking/uSockets && \
@@ -41,10 +41,10 @@ RUN meson --prefix "/out" build && \
     ninja -C build install
 
 # Our runner dockerfile
-FROM alpine:latest
+FROM alpine:edge
 
 # Install all the dynamically linked dependencies
-RUN apk add wget make gcc openssl openssl-dev curl musl-dev git g++ supervisor caddy && \
+RUN apk add wget make gcc openssl3 openssl3-dev curl musl-dev git g++ supervisor caddy && \
     wget https://git.openldap.org/openldap/openldap/-/archive/LMDB_0.9.29/openldap-LMDB_0.9.29.tar.gz && \
     tar xzf openldap-LMDB_0.9.29.tar.gz && \
     cd openldap-LMDB_0.9.29/libraries/liblmdb && \
