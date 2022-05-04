@@ -38,7 +38,8 @@ RUN mkdir /out
 # Install at /out
 RUN CC="clang" CXX="clang++" CC_LD="lld" CXX_LD="lld" LDFLAGS="-flto=full" meson --prefix "/out" build && \
     ninja -C build && \
-    ninja -C build install
+    ninja -C build install && \
+    strip -s /out/bin/purrito
 
 # Our runner dockerfile
 FROM alpine:edge
