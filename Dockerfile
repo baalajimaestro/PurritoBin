@@ -1,6 +1,6 @@
 FROM alpine:edge as builder
 
-RUN apk update && apk add build-base ninja meson git wget bash curl openssl3 openssl3-dev
+RUN apk update && apk add build-base ninja meson git wget bash curl openssl3 openssl3-dev llvm clang lld
 
 # Install usockets
 RUN git clone https://github.com/uNetworking/uSockets && \
@@ -9,7 +9,7 @@ RUN git clone https://github.com/uNetworking/uSockets && \
     git checkout c2c1bbfa1644f1f6eb7fc9375650f41c5f9b7b06 && \
     curl https://raw.githubusercontent.com/gentoo/guru/dev/net-libs/usockets/files/usockets-0.8.1_p20211023-Makefile.patch | git apply && \
     curl https://raw.githubusercontent.com/gentoo/guru/dev/net-libs/usockets/files/usockets-0.8.1_p20211023-pkg-config.patch | git apply && \
-    make WITH_OPENSSL=1 && \
+    make CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-flto=full -fuse-ld=lld" WITH_OPENSSL=1 && \
     make install && \
     cd ..
 
@@ -26,7 +26,7 @@ RUN wget https://git.openldap.org/openldap/openldap/-/archive/LMDB_0.9.29/openld
     tar xzf openldap-LMDB_0.9.29.tar.gz && \
     cd openldap-LMDB_0.9.29/libraries/liblmdb && \
     make && \
-    make prefix="/usr" install
+    make CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-flto=full -fuse-ld=lld" prefix="/usr" install
 
 # Instal lmdb++.h
 RUN wget https://raw.githubusercontent.com/hoytech/lmdbxx/1.0.0/lmdb%2B%2B.h -O /usr/include/lmdb++.h
@@ -36,7 +36,7 @@ COPY . .
 RUN mkdir /out
 
 # Install at /out
-RUN meson --prefix "/out" build && \
+RUN CC="clang" CXX="clang++" CC_LD="lld" CXX_LD="lld" LDFLAGS="-flto=full" meson --prefix "/out" build && \
     ninja -C build && \
     ninja -C build install
 
@@ -44,11 +44,11 @@ RUN meson --prefix "/out" build && \
 FROM alpine:edge
 
 # Install all the dynamically linked dependencies
-RUN apk add wget make gcc openssl3 openssl3-dev curl musl-dev git g++ supervisor caddy && \
+RUN apk add wget make gcc openssl3 openssl3-dev curl musl-dev git g++ supervisor caddy clang llvm lld && \
     wget https://git.openldap.org/openldap/openldap/-/archive/LMDB_0.9.29/openldap-LMDB_0.9.29.tar.gz && \
     tar xzf openldap-LMDB_0.9.29.tar.gz && \
     cd openldap-LMDB_0.9.29/libraries/liblmdb && \
-    make && \
+    make CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-flto=full -fuse-ld=lld" && \
     make prefix="/usr" install && \
     cd ../../.. && \
     rm -rf openldap-LMDB_0.9.29.tar.gz openldap-LMDB_0.9.29 && \
@@ -58,11 +58,11 @@ RUN apk add wget make gcc openssl3 openssl3-dev curl musl-dev git g++ supervisor
     git checkout c2c1bbfa1644f1f6eb7fc9375650f41c5f9b7b06 && \
     curl https://raw.githubusercontent.com/gentoo/guru/dev/net-libs/usockets/files/usockets-0.8.1_p20211023-Makefile.patch | git apply && \
     curl https://raw.githubusercontent.com/gentoo/guru/dev/net-libs/usockets/files/usockets-0.8.1_p20211023-pkg-config.patch | git apply && \
-    make WITH_OPENSSL=1 && \
+    make CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-flto=full -fuse-ld=lld" WITH_OPENSSL=1 && \
     make install && \
     cd .. && \
     rm -rf uSockets && \
-    apk del openssl-dev make curl wget musl-dev git g++ && \
+    apk del openssl3-dev make curl wget musl-dev git g++ clang llvm lld && \
     mkdir /var/log/supervisord /var/run/supervisord
 
 # Purrito binary from builder container
